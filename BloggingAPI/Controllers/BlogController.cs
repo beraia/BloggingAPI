@@ -1,5 +1,6 @@
 ﻿using BloggingAPI.Data;
 using BloggingAPI.Models;
+using BloggingAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,45 +10,67 @@ namespace BloggingAPI.Controllers
     [Route("api/[controller]")]
     public class BlogController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        public BlogController(ApplicationDbContext context)
+        private readonly IArticleService _articleService;
+        public BlogController(IArticleService articleService)
         {
-            _context = context;
+            _articleService = articleService;
         }
 
         [HttpPost]
         [Route("Create")]
-        public async Task<IActionResult> CreateArticle(CreateArticleRequest request)
+        public async Task<IActionResult> Create([FromQuery]CreateArticleRequest request)
         {
-            var article = new Article()
+            try
             {
-                Title = request.Title,
-                Content = request.Content,
-            };
-            _context.Add(article);
-            await _context.SaveChangesAsync();
-            return Ok();
+                var response = await _articleService.Create(request);
+                if(response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Server Error");
+            }
         }
 
         [HttpGet]
         [Route("GetAll")]
-        public async Task<IActionResult> GetArticles()
+        public async Task<IActionResult> GetArticles([FromQuery]GetArticlesRequest request)
         {
-            var result = await _context.Articles.ToListAsync();
-            return Ok(result);
+            try
+            {
+                var response = await _articleService.GetArticles(request);
+                if(response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Server Error");
+            }
         }
 
         [HttpGet]
         [Route("GetById")]
         public async Task<IActionResult> GetArticleById([FromQuery]GetArticleByIdRequest request)
         {
-            var article = await _context.Articles.FirstOrDefaultAsync(x => x.Id == request.Id);
-            var result = new GetArticleByIdResponse()
+            try
             {
-                Title = article.Title,
-                Content = article.Content,
-            };
-            return Ok(result);
+                var response = await _articleService.GetArticleById(request);
+                if (response != null)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Server Error");
+            }   
         }
     }
 }
