@@ -1,6 +1,7 @@
 ﻿using BloggingAPI.Data;
 using BloggingAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BloggingAPI.Controllers
 {
@@ -16,7 +17,7 @@ namespace BloggingAPI.Controllers
 
         [HttpPost]
         [Route("Create")]
-        public IActionResult CreateArticle(CreateArticleRequest request)
+        public async Task<IActionResult> CreateArticle(CreateArticleRequest request)
         {
             var article = new Article()
             {
@@ -24,8 +25,29 @@ namespace BloggingAPI.Controllers
                 Content = request.Content,
             };
             _context.Add(article);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("GetAll")]
+        public async Task<IActionResult> GetArticles()
+        {
+            var result = await _context.Articles.ToListAsync();
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("GetById")]
+        public async Task<IActionResult> GetArticleById([FromQuery]GetArticleByIdRequest request)
+        {
+            var article = await _context.Articles.FirstOrDefaultAsync(x => x.Id == request.Id);
+            var result = new GetArticleByIdResponse()
+            {
+                Title = article.Title,
+                Content = article.Content,
+            };
+            return Ok(result);
         }
     }
 }
