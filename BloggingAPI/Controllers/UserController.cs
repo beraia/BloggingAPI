@@ -1,9 +1,11 @@
 ﻿using BloggingAPI.Models;
 using BloggingAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BloggingAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : Controller
@@ -16,6 +18,27 @@ namespace BloggingAPI.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
+        [Route("Login")]
+        public async Task<IActionResult> Login(LoginRequest request)
+        {
+            try
+            {
+                var response = await _userService.Login(request);
+                if(response == null)
+                {
+                    return Unauthorized();
+                }
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Server Error");
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
         [Route("Register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {

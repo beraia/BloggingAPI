@@ -23,6 +23,34 @@ namespace BloggingAPI.Services
             _context = context;
         }
 
+        public async Task<LoginResponse> Login(LoginRequest request)
+        {
+            var user = await _userManager.FindByNameAsync(request.UserName);
+            if(user != null && await _userManager.CheckPasswordAsync(user, request.Password))
+            {
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+                foreach (var userRole in userRoles)
+                {
+                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                }
+
+                var token = GetToken(authClaims);
+
+                return new LoginResponse
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                    Expiration = token.ValidTo
+                };
+            }
+            return null;
+        }
+
         public async Task<RegisterResponse> Register(RegisterRequest request)
         {
             var userExist = await _userManager.FindByEmailAsync(request.UserName);
