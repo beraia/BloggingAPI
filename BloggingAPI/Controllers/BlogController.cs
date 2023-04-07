@@ -1,11 +1,13 @@
 ﻿using BloggingAPI.Data;
 using BloggingAPI.Models;
 using BloggingAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BloggingAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class BlogController : Controller
@@ -16,6 +18,7 @@ namespace BloggingAPI.Controllers
             _articleService = articleService;
         }
 
+        [Authorize]
         [HttpPost]
         [Route("Create")]
         public async Task<IActionResult> Create([FromQuery]CreateArticleRequest request)
@@ -35,6 +38,7 @@ namespace BloggingAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetAll")]
         public async Task<IActionResult> GetArticles([FromQuery]GetArticlesRequest request)
@@ -54,6 +58,7 @@ namespace BloggingAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetById")]
         public async Task<IActionResult> GetArticleById([FromQuery]GetArticleByIdRequest request)
